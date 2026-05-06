@@ -1,0 +1,5 @@
+Model,Accuracy,AUC,Sensitivity (Recall),Specificity,Precision
+Logistic Regression,0.6414,0.5723,0.9856,0.0215,0.6446
+Random Forest,0.5723,0.5716,0.6293,0.4697,0.6812
+Artificial Neural Network,0.643,0.4336,1.0,0.0,0.643
+XGBoost,0.6196,0.5391,0.8766,0.1568,0.6519

@@ -1,0 +1,1573 @@
+Hybrid machine learning model for the prediction of anaemia
+Rabia Omar Said a, Mahadia Tunga b,*
+a Office of the Chief Government Statistician (OCGS) Zanzibar, Tanzania
+b Department of Computer Science and Engineering, College of Information and Communication Technologies, University of Dar es Salaam (UDSM), Tanzania
+A R T I C L E  I N F O
+Keywords:
+Anaemia
+Hybrid machine learning models
+Stacking ensemble
+Threshold optimization
+A B S T R A C T
+In developing countries like Tanzania, despite the national intervention, the proportion of anaemic children aged 
+6–59 months is seen to be high, with a prevalence of 59 %. Traditional methods, such as examining paleness in 
+the eyes and tongue, are commonly used, but are subjective and often lead to delayed or missed diagnoses. While 
+existing Machine learning models have attempted to predict anaemia in children and offer improved accuracy, 
+many rely on single-model strategies and a default threshold of 0.5, which tends to favour sensitivity over 
+specificity, leading to a high number of false positives. The study used the supervised machine learning approach 
+within the CRISP-DM framework. A stacked hybrid approach was used, integrating Random Forest (RF) and 
+Artificial Neural Network (ANN) as base models, using XGBoost as a meta-learner. The model’s performance was 
+evaluated using metrics such as accuracy, sensitivity, specificity, precision, and Area Under the Curve (AUC) with 
+95 % confidence intervals (CIs) across thresholds of 0.35, 0.4, 0.45, and 0.5, optimized using Youden’s J index. 
+The hybrid model achieved balanced performance, especially at a 0.4 threshold with a sensitivity of 0.861 and a 
+specificity of 0.880. Compared to standalone models, the hybrid approach outperformed in reducing false pos­
+itives and false negatives, offering greater reliability and clinical safety. This study concludes that the stacking 
+ensemble approach, along with threshold optimization, provides an effective solution for early detection of 
+anaemia in children. Integration of hybrid Machine Learning models into Tanzania’s health screening programs 
+could improve child health outcomes.
+1. Introduction
+Anaemia refers to a condition characterized by a decrease in the 
+number or quality of red blood cells, and remains a serious global health 
+concern, particularly affecting young children, menstruating adolescent 
+girls, and pregnant and postpartum women (Gardner et al., 2023). Ac­
+cording to the World Health Organization (WHO), the proportion of 
+anaemia varies across different groups worldwide, with 40 % of children 
+aged 6–59 months, 37 % of pregnant women, and 30 % of women aged 
+15–49 years affected (Gardner et al., 2023). In developing countries like 
+Tanzania, despite the national intervention, the situation is still critical, 
+with 59 % of children in this group suffering from anaemia, according to 
+the Tanzania Demographic and Health Survey (Ministry of Health 
+(MoH)[Tanzania Mainland] et al., 2022).
+Current clinical screening methods are often subjective and can lead 
+to delayed or missed diagnoses, hindering timely intervention to erad­
+icate the problem. To tackle this problem, there is an urgent need to 
+improve the prediction methods that use modern data analytics and 
+machine learning techniques to enhance the prediction and timeliness of 
+anaemia diagnosis in children aged 6–59 months.
+Existing machine learning studies have limited performance metrics, 
+such that the sensitivity and accuracy show higher performance than 
+specificity, especially in an imbalanced dataset like the health dataset, 
+which indicates many false positives, as many non-diseased (non- 
+anaemic) children might be incorrectly classified as diseased (anaemic), 
+leading to unnecessary treatment or misallocation of medical resources. 
+Lower specificity indicates the possibility of missed cases. This is 
+because most of these studies used the traditional default threshold of 
+0.5, which optimizes only one metric. Additionally, most of these studies 
+relied on a single model strategy.
+To address the mentioned challenges, the study proposes a novel 
+Hybrid machine learning model using a stacking approach that com­
+bines Random Forest (RF), a tree-based model and Artificial Neural 
+Networks (ANN), a deep learning model, (RF+ANN) with an XGBoost 
+model, a meta-learner integrating with the threshold optimization using 
+Youden’s index to ensure a balanced sensitivity and specificity for the 
+* Corresponding author.
+E-mail addresses: rabia.said@ocgs.go.tz (R.O. Said), mahadiatunga@udsm.ac.tz (M. Tunga). 
+Contents lists available at ScienceDirect
+Machine Learning with Applications
+journal homepage: www.elsevier.com/locate/mlwa
+https://doi.org/10.1016/j.mlwa.2025.100741
+Received 18 July 2025; Received in revised form 4 September 2025; Accepted 23 September 2025  
+Machine Learning with Applications 22 (2025) 100741 
+Available online 3 October 2025 
+2666-8270/© 2025 Published by Elsevier Ltd. This is an open access article under the CC BY-NC-ND license ( http://creativecommons.org/licenses/by-nc-nd/4.0/ ). 
+proper classification of the anaemic and non-anaemic children. The 
+framework has not been previously reported in predicting pediatric 
+anaemia, especially in Tanzania.
+Additionally, this study benchmarked the hybrid model against 
+several baseline and state-of-the-art approaches, such as LASSO, SVM, 
+Naive Bayes, Random Forest, ANN, XGBoost, and Logistic Regression, 
+using the same dataset, under the same experimental protocol. Results 
+were reported with 95 % confidence intervals to ensure fair comparison. 
+The statistical significance tests, such as McNemar’s test for accuracy 
+and DeLong’s test for AUC, were performed to show the comparative 
+performance between the proposed hybrid model and baselines.
+2. Background review
+Anaemia is a condition characterized by a lower-than-normal 
+amount of red blood cells or a haemoglobin concentration that is 
+<110 g/L at sea level, and hence leads to paleness, fatigue, dizziness, 
+and difficulty breathing (Gardner et al., 2023). Bate and Rasmussen 
+(2009) mentioned that Iron deficiency is the primary cause of anaemia 
+in children due to insufficient iron intake, deficiencies in vitamins like 
+vitamin A and vitamin B12, infections such as malaria, tuberculosis, 
+HIV, and parasitic infections that impair nutrient absorption and 
+metabolism, and inherited red blood cell disorders, including gene 
+variants, and sickle cell that change the haemoglobin structure. If left 
+untreated, anaemia directly affects the child’s immune system, physical 
+and cognitive development, and academic performance.
+2.1. Factors associated with the cause of anaemia in children aged 6–59 
+months
+Studies conducted by Kejo et al. (2018); Msaki et al. (2022); Said 
+et al. (2021) reported that the factors such as the child’s age, low birth 
+weight, nonconsumption of iron-rich foods like meat, vegetables, and 
+fruits, being a mother with no schooling, being a male child, being a 
+child within the 6–59 months age, home births, maternal anaemia, 
+child’s stunting, and fever. These factors are categorized into Social, 
+demographic, and health-related factors.
+2.2. Feature selection techniques
+Feature selection techniques are the methods applied to select or 
+identify the subset of the most appropriate features from the dataset 
+while leaving out the redundant or irrelevant ones to improve the 
+model’s interpretability, computational efficiency, and predictive per­
+formance (Laakel Hemdanou et al., 2024). There are three types of 
+feature selection techniques: Filter methods, such as Chi-square tests, 
+correlation, and mutual information; Wrapper methods, including 
+Recursive Feature Elimination (RFE); and Embedded methods, including 
+LASSO and Random Forest.
+Most studies have used the filter method to select the best or sig­
+nificant features based on statistical relevance (Tesfaye et al., 2024; 
+Uwizera et al., 2022; Zahirzada et al., 2023). Other previous studies 
+have shown the superiority of the Embedded feature selection technique 
+using random forest, as it selects the relevant features and is a capable 
+solution to high-dimensional datasets that contain interactions among 
+features of different types (ElDahshan et al., 2023; Saihood, 2022). In 
+addition, using Random Forest as the feature selection technique, 
+evaluates each feature’s importance during the model training process, 
+features with higher importance scores are selected for model building, 
+and those with lower threshold scores are ignored (Pudjihartono et al., 
+2022).
+2.3. Machine learning models in the prediction of anaemia
+Recent studies have discovered the potential of Machine learning 
+(ML) models that offer more objective and timely diagnoses compared to 
+traditional methods, since the proper intervention and diagnosis of 
+anaemia in children 6–59 months can reduce the risk of anaemia, and 
+enhance the detection of anaemia based on multiple risk factors 
+(Uwizera et al., 2022). Several models, such as Random Forest (RF), 
+XGBoost classifier, Support Vector Machine (SVM), Logistic Regression 
+(LR), Naïve Bayes (NB), K-Nearest Neighbor (K-NN), Multi-Layer Per­
+ceptron (MLP), decision tree, and penalized regression models such as 
+ridge, LASSO, and elastic net have been used to predict anaemia in 
+children aged 6–59 months. A study by Uwizera et al. (2022) found that 
+the XGBoost model was the best with an Accuracy of 85.21 %, Sensitivity 
+of 98.71 %, Specificity of 71.70 %, F1-score of 86.97 %, and AUC of 98 
+%. Another study reported that RF outperformed the other models with 
+an Accuracy of 86.4 %, AUC of 88.2 %, Precision of 85.0 %, and recall of 
+77.3 % (Zahirzada et al., 2023). (Tesfaye et al. (2024) showed that the 
+LR model was the best model with an Accuracy of 66 %, Sensitivity of 82 
+%, Specificity of 42 %, and AUC of 69 %. Another study reported that 
+LASSO had the highest performance with a Kappa of 28.56 %, an Ac­
+curacy of 64.29 %, a Sensitivity of 62.24 %, a Specificity of 66.32 %, a 
+Positive predictive value of 64.71 %, a Negative predictive value of 
+63.89 %, and an F1 value of 63.45 %.
+2.4. Evaluation metrics
+A study conducted by Uwizera et al. (2022) considered accuracy, 
+sensitivity, specificity, F1 score, and Receiver Operating Characteristics- 
+area under the curve (ROC-AUC) as evaluation metrics. A study by 
+Tesfaye et al. (2024) considered performance metrics such as Accuracy, 
+Sensitivity, Specificity, and ROC-AUC. Accuracy, AUC, Precision, and 
+Recall were the measures for assessing the model’s performance 
+(Zahirzada et al., 2023). Another study conducted to predict anaemia in 
+children aged 6–59 months considered performance metrics such as 
+Kappa, Accuracy, Sensitivity, Specificity, Positive predictive value, 
+Negative predictive value, and F1 value for evaluation of the models 
+(Meitei et al., 2022), while another study considered accuracy, sensi­
+tivity, and specificity as the evaluation metrics (Saihood, 2022).
+This study used evaluation metrics such as accuracy, precision, 
+sensitivity, specificity, and AUC. The 95 % confidence intervals (CIs) 
+were computed using a non-parametric bootstrap procedure with 1000 
+resamples. Each resample was drawn with replacement from the test set, 
+and the metric distribution across distribution resamples was used to 
+calculate the percentile-based CI bounds. This approach avoids the 
+assumption of normality and is widely used in classification perfor­
+mance evaluation (Skretteberg et al., 2024).
+2.5. Threshold optimization
+Threshold optimization in machine learning classification refers to 
+the cut point or boundary used to assign a specific predicted class to each 
+entity, and it is an important parameter when building and evaluating 
+classification models, significantly affecting the model’s performance 
+(Guide, 2025). As is known, the traditional default threshold is 0.5 and is 
+widely used in machine learning classification tasks, and the goal is to 
+optimize a single performance metric, such as accuracy. However, some 
+situations require more attention and are essential to maximize two or 
+more performance metrics simultaneously to ensure balanced and 
+robust classifier performance (Foody, 2023).
+Lowering the threshold helps to balance the performance metrics. A 
+study conducted by Foody (2023) reported that the optimal threshold of 
+0.3 provided a better balance among the three evaluation metrics 
+compared to the default threshold of 0.5, the most significant metric, 
+sensitivity, improved from 72.65 % to 84.65 %, and using the health 
+dataset to identify the malignant tumors reported that the optimal 
+threshold of 0.316 achieved the balance between sensitivity and speci­
+ficity, indicating that the model identified a greater number of positive 
+cases and reduced the number of false negatives. Another study con­
+ducted by Deo et al. (2024) reported that after applying the threshold 
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+2 
+optimization, a notable improvement was observed in metrics such as 
+precision and sensitivity. Therefore, the study applied the threshold 
+optimization technique to optimize the sensitivity and specificity, as 
+accuracy alone is insufficient to evaluate the model. This ensured that 
+the model predicted well in detecting anemic and non-anemic cases.
+2.6. Related works
+Some more recent work uses advanced techniques such as spatial 
+attention in images or aggregate model ranking (HBADR). A study 
+conducted by Asare et al. (2023) considered features such as Hb values, 
+age, sex, and remark (anaemic or non-anaemic) based on the Hb value 
+captured with the corresponding images from the conjunctiva of the 
+eyes, palpable palm, and fingernails and uploaded to the cloud storage 
+(database) as the significant factors for anaemia detection in children 
+using machine learning models such as Naïve Bayes, K-NN, SVM, Con­
+volutional neural network (CNN), and decision tree. The CNN achieved 
+a higher accuracy of 99.12 % compared to other models, indicating the 
+power of CNN and the performance of the models, which explains that 
+the non-invasive approach is an active instrument for anaemia 
+detection.
+Another study used the CP-AnaemiC dataset, the largest publicly 
+available conjunctiva pallor-based dataset with annotated images of 
+balanced anaemic and non-anaemic classes. Two representative tasks in 
+anaemia diagnosis in children were performed, including Hb levels 
+prediction and anaemia label classification. The study developed a deep 
+neural network-based joint classification and regression learning 
+framework, which simultaneously classifies anaemia and estimates Hb 
+levels (g/dL) using the conjunctiva pallor images. The experimental 
+results showed the effectiveness of the joint deep neural network in both 
+the tasks of anaemia classification and Hb levels (g/dL) estimation 
+(Appiahene et al., 2023).
+Another study used the conjunctiva images to detect anaemia in 
+children using machine learning models such as KNN, SVM, CNN, Naive 
+Bayes, and Decision Tree. The CNN achieved a higher accuracy of 98.45 
+% indicating the importance of detecting anaemia in children using non- 
+invasive techniques (Asare et al., 2024).
+A study by Saputra et al. (2025) used an ensemble model that in­
+tegrates Random Forest, XGBoost, and sea horse optimization tech­
+niques to determine the optimal number and depth of trees, hence 
+improving accuracy and interpretability. The study also included an 
+explainable artificial intelligence through SHAP analysis for trans­
+parency and trust in clinical decision-making. The study concluded that 
+the Smart-Forest outperformed traditional models with an accuracy of 
+98.82 %, precision of 98.09 %, recall of 99.39 %, and F1-score of 98.72, 
+indicating the reliability of the predictive power and the model’s 
+balanced nature.
+Additionally, the study reviewed several related works to identify the 
+Social, demographic, and health-related factors associated with the 
+cause of anaemia in children aged 6–59 months, and the machine 
+learning models used together with the evaluation metrics.
+Uwizera et al. (2022) identified several key social, demographic, and 
+health-related factors, including a child’s age, malaria history, duration 
+of breastfeeding, Residence, and Type of toilet facilities, as significant 
+predictors of anaemia in children. The five machine learning models, 
+such as RF, XGBoost, SVM, LR, and NB, were developed and evaluated. 
+The XGBoost outperformed the other models with an Accuracy of 85.21 
+%, Sensitivity of 98.71 %, Specificity of 71.70 %, F1-score of 86.97 %, 
+and AUC of 98 %. Thus, XGBoost was found to be reliable for detecting 
+anaemic cases; however, it has a relatively low chance of identifying 
+actual negative cases.
+A study by Tesfaye et al. (2024) found that maternal and household 
+factors such as maternal anaemia and weight, place of residence, and 
+number of children under five as the most significant features for 
+childhood anaemia. The models used included LR, RF, KNN, and DT. The 
+LR model was the best model with an Accuracy of 66 %, Sensitivity of 82 
+%, Specificity of 42 %, and AUC of 69 %. This indicates that most of the 
+anaemic children were correctly detected, while many non-anaemic 
+children were incorrectly classified as anaemic. The model also had a 
+fair chance (69 %) of correctly distinguishing between anaemic and 
+non-anaemic children.
+The study conducted in Afghanistan considered the child, maternal, 
+and household-related factors such as maternal anaemia and weight, 
+residence, and wealth status, as the most significant features for anaemia 
+prediction in children aged 6–59 months. The ML models used were K- 
+NN, MLP, NB, RF, and SVM. The RF outperformed the other models with 
+an Accuracy of 86.4 %, an AUC of 88.2 %, a Precision of 85.0 %, and a 
+recall of 77.3 %, indicating that the model was generally reliable in 
+predicting anaemia status, correctly distinguished between an anaemic 
+and a non-anaemic child, and the model correctly identified 77.3 % of 
+the actual anaemic cases (Zahirzada et al., 2023).
+In addition to model selection, several studies have emphasized the 
+importance of hyperparameter tuning that yields the best performance 
+for a machine learning model. Trouvain et al. (2020) urged that the 
+random search gets more samples from the important parameters, while 
+the grid search undersamples the space by repeating the sampling pro­
+cess for important parameters. A study conducted by Ramzan et al. 
+(2024) reported using the GridSearchCV to enhance the performance of 
+the models. Some studies that apply SVMs or Random Forests to clas­
+sification tasks frequently report using grid search (Chicco & Jurman, 
+2020) and others, cross-validation-based tuning of hyperparameters 
+(Uwizera et al., 2022). Similarly, the Artificial Neural Networks (ANNs) 
+often require optimization of learning rate, number of hidden units, and 
+dropout rates (A Ilemobayo et al., 2024). In this study, however, 
+hyperparameter tuning was performed using a manual search and 
+literature-guided approach, rather than automated search techniques 
+such as grid search or randomized search, where values for each model 
+were selected based on evidence from prior studies (Goodfellow, 2015; 
+Jin et al., 2020).
+A study conducted by Meitei et al. (2022) considered the social, 
+demographic, and health-related features such as the child’s age and sex, 
+number of living children, sanitation, and disposal of the youngest 
+child’s stool, as the most predictors of anaemia in children. The study 
+used penalized regression models such as ridge, LASSO, and elastic net. 
+LASSO achieved the highest performance with a Kappa of 28.56 %, an 
+Accuracy of 64.29 %, a Sensitivity of 62.24 %, a Specificity of 66.32 %, a 
+positive predictive value of 64.71 %, a negative predictive value of 
+63.89 %, and an F1 value of 63.45 %. Indicating that the model had a 
+balanced but moderate ability to detect true anaemic and non-anaemic 
+cases, and the Kappa value indicated fair agreement beyond chance, 
+showing that while the model performs better than random guessing, 
+there is still considerable room for improvement.
+While these studies have mainly relied on the image-based CNN 
+models (Appiahene et al., 2023; Asare et al., 2023, 2024), used indi­
+vidual models such as Logistic Regression, Random Forest, and XGBoost 
+(Meitei et al., 2022; Tesfaye et al., 2024; Uwizera et al., 2022; Zahirzada 
+et al., 2023). Additionally, Saputra et al. (2025) used advanced 
+ensemble modelling through the Smart-Forest, combining RF and 
+XGBoost with optimization and SHAP analysis for interpretability, but 
+this design was restricted to the tree-based learners. On the other hand, 
+this study advances the literature by combining the strengths of the two 
+base learners, Random Forest (RF) and Artificial Neural Network (ANN), 
+with XGBoost as a meta learner. This combination allows the comple­
+ments of tree-based methods (robustness to feature interactions and 
+non-linear relationships) and neural networks (capacity to capture 
+complex patterns). This framework has not been reported previously in 
+the area of predicting anaemia in children, specifically in Tanzania. 
+Additionally, unlike the previous studies that mainly rely on the stan­
+dard decision threshold of 0.5, this study incorporated the threshold 
+optimization technique based on Youden’s J index that optimizes the 
+classification threshold to ensure a balanced trade-off between sensi­
+tivity and specificity, which is important in unbalanced datasets such as 
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+3 
+pediatric anaemia and clinically relevant in healthcare settings.
+2.7. Study gap
+Despite these advancements in the related works, the gaps remain. 
+Many existing machine learning models for the prediction of anaemia in 
+children aged 6–59 months are faced with the problem of imbalance in 
+performance metrics specifically in health dataset that might have the 
+positive (anaemic) cases as the majority cases and negative (non- 
+anaemic) cases as the minority cases, where the sensitivity shows the 
+higher performance and specificity lower performance, representing 
+many false positives as many non-anaemic children might be incorrectly 
+classified as anaemic. This is because most of these studies used the 
+traditional default threshold of 0.5, which favors only one metric on the 
+cost of another metric (higher sensitivity and lower specificity). Addi­
+tionally, most of these studies relied on a single machine learning model 
+for anaemia prediction.
+This study addressed these study gaps by integrating the strengths of 
+more than one machine learning models, a Hybrid machine learning 
+model using a stacking ensemble approach that combined Random 
+Forest (RF), and Artificial Neural Network (ANN) (RF+ANN) with a 
+meta-learner XGBoost model, as a result this approach increases the 
+model’s predictability power and generalizability with a threshold 
+optimization approach that offered a balanced sensitivity and specificity 
+that reduces the number of false positives (not anaemic children being 
+classified as anaemic) and false negatives (anaemic children being 
+classified as not anaemic).
+3. Methods and tools
+3.1. Study area
+The study focused on urban and rural areas considering all usual 
+residents in the households, including all women of reproductive age 
+(15–49 years), men aged 15–49, and all children aged 0–59 months in 
+the households across all regions of the Tanzanian Mainland and Zan­
+zibar as covered by the Tanzania Demographic and Health Survey 
+(2022). This survey was designed to provide representative estimates for 
+the entire country and is conducted every five years.
+3.2. Research plan
+The Cross-Industry Standard Process for Data Mining (CRISP-DM) 
+framework guides this study (Schr¨oer et al., 2021). The framework 
+consists of six phases: Business understanding, data understanding, data 
+preparation, model building, and model evaluation. However, the study 
+did not consider the sixth stage of deployment. The study was divided 
+into three major parts (1) identifying the relevant social, demographic, 
+and health-related factors associated with the cause of anaemia in 
+children aged 6–59 months, (2) building a hybrid machine learning 
+model that predicts anaemia among children aged 6–59 months, and (3)
+evaluate the performance of the proposed hybrid model. The hybrid 
+model was evaluated across different performance metrics, including 
+accuracy, precision, sensitivity, specificity, and AUC with 95 % confi­
+dence intervals (CIs) through different decision thresholds using You­
+den’s J index. Additionally, statistical differences were assessed using 
+McNemar’s test to test whether one model outperforms the other, and 
+DeLong’s test was used to compare AUCs between ROC curves (Rainio 
+et al., 2024).
+3.3. Data sources
+This study used secondary data from the Tanzania Demographic and 
+Health Survey conducted in 2022 (Ministry of Health (MoH)[Tanzania 
+Mainland] et al., 2022). This survey measures health issues in Tanzania.
+3.4. Data preparation
+Data was extracted from a dataset containing 10,783 records. After 
+filtering the data to focus on the target age group (6–59 months), only 
+4366 records remained. Relevant features were recorded, and categor­
+ical values were mapped to facilitate model training. Missing values 
+were checked and filled using K-Nearest Neighbours (KNN). Outlier 
+values were checked using the Z-score method with a threshold of 
+greater than positive or negative three Standard deviations. New fea­
+tures were created using the existing ones in the dataset, and those 
+features used to create new features were dropped to improve the per­
+formance of the model.
+3.5. Research tools
+This study used the Python programming language (version 3.12.0), 
+a popular choice in machine learning research due to its rich machine 
+learning libraries. The use of Python, along with important libraries, 
+includes Pandas for data cleaning, Matplotlib for data visualization, 
+Seaborn for advanced statistical visualization, and Scikit-learn for 
+building machine learning models (Sundaram et al., 2023).
+4. Factors associated with the cause of anaemia in children aged 
+6–59 months
+Since the dataset used contained both the numerical and categorical 
+features; two different statistical tests were used: One way Analysis of 
+Variance (ANOVA) was applied to numerical features such as the child’s 
+age in months (child_age), and mother’s age (maternal_age) to compare 
+mean differences between the anaemic and not anaemic groups; and the 
+Chi-square test was applied for categorical features such as child’s birth 
+size (birth_size), and the child’s stunting status (child_stunting) to 
+examine whether the distribution of categories varied significantly 
+across the outcome groups.
+This study found that 14 features were significant in association with 
+anaemia in children aged 6–59 months, while 13 features were not. 
+These features are present in Table 1 when the value of “TRUE” in col­
+umn Significant (p <= 0.05) presents the statistically significant fea­
+tures, and the “FALSE” value presents not statistically significant 
+features at 95 % Confidence Interval (CI) and p-value<=0.05.
+Also, the features associated with anaemia in children aged 6–59 
+months that were directly linked to the child were the child’s age in 
+months (child_age), the child’s diarrhea status in the last two weeks 
+(haddiarr_last2w), the child’s birth size (birth_size), the child’s stunting 
+status (child_stunting), the duration of the child’s breastfeeding 
+(breastfeed_duration), the child’s fever Status in previous weeks 
+(fever_last2w), child’s sex (child_sex), and drugs for intestinal parasites 
+status in previous 6 months (hadintestinal_drugs).
+In addition, factors associated with anaemia in children, such as 
+births in the last 3 years (birth_3yrs), the anaemia level of a mother 
+(anemialev_mother), the mother’s age (maternal_age), and whether a 
+mother took iron supplements during pregnancy (irontab_preg), were 
+associated with the mother’s characteristics. The region (region) and 
+source of drinking water (source_drinkwater) were related to anaemia in 
+children aged 6–59 months, which was characterized by household 
+factors.
+5. Building a hybrid machine learning model
+5.1. Feature selection
+This study used random forest feature selection techniques to find 
+the subset of features that improves the performance of the model. The 
+random Forest model performed the feature selection technique through 
+the repeated evaluation of random subsets of features at each tree split, 
+with feature importance calculated by the average reduction in node 
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+4 
+impurity (Gini index) across all trees. Thus, ranking features according 
+to their contribution to the model performance. The feature importance 
+score, as indicated by the threshold line (red dotted line) from the chart, 
+shows the threshold point of importance > 0.02. Features to the left of 
+the line have importance scores below the threshold, and are not 
+considered, while those to the right of the threshold line score with 
+higher bars have the more important features’ scores and were consid­
+ered for model building, as shown in Fig. 1. After important features 
+have been selected through the RF feature selection technique, the two 
+base models, RF and ANN, were then trained separately.
+5.2. Hyperparameter tuning
+The hyperparameters were carefully selected and tuned to ensure the 
+robustness and generalizability of all models, RF, ANN, and Hybrid 
+Stacking model (RF+ANN with XGBoost as the meta-learner). In this 
+study, hyperparameter tuning was performed using a manual and 
+literature-guided approach. The hyperparameter values for each model 
+were selected based on the evidence from the prior studies and empirical 
+testing to ensure both model interpretability and generalization.
+5.2.1. Tuning RF model
+The ensemble model, Random Forest, was trained using 500 decision 
+trees to enhance the generalization and reduce model overfitting. A 
+study by Jin et al. (2020) reported that the generalization error de­
+creases as the number of trees in the forest increases. The maximum tree 
+depth was set to 10. To control overfitting, the minimum number of data 
+points needed to split was five split samples or three leaf samples. Even 
+more important, the class weights were set to be balanced, automatically 
+adjusting the class weights for imbalanced class distributions.
+Table 1 
+Bivariate Analysis of anaemia status among children aged 6–59 months in all features.
+Feature
+Test
+Test Value
+p-value
+Degrees of Freedom
+Significant (p <= 0.05)
+child_age
+ANOVA
+276.0604452
+4.97301E-60
+1
+TRUE
+breastfeed_duration
+Chi-Square
+166.876991
+5.79591E-37
+2
+TRUE
+Region
+Chi-Square
+135.1576995
+2.67066E-15
+30
+TRUE
+birth_3yrs
+ANOVA
+60.10491563
+1.12891E-14
+1
+TRUE
+anemialev_mother
+Chi-Square
+66.67842743
+2.19416E-14
+3
+TRUE
+maternal_age
+ANOVA
+34.99417735
+3.57927E-09
+1
+TRUE
+birth_size
+Chi-Square
+41.05982977
+2.61224E-08
+4
+TRUE
+haddiarr_last2w
+Chi-Square
+24.76108869
+6.48944E-07
+1
+TRUE
+child_stunting
+Chi-Square
+19.81678987
+8.52307E-06
+1
+TRUE
+irontab_preg
+Chi-Square
+19.12579869
+1.22379E-05
+1
+TRUE
+child_sex
+Chi-Square
+11.36612719
+0.000747957
+1
+TRUE
+fever_last2w
+Chi-Square
+6.845189627
+0.008888026
+1
+TRUE
+source_drinkwater
+Chi-Square
+30.33103629
+0.016359529
+16
+TRUE
+hadintestinal_drugs
+Chi-Square
+4.975024286
+0.025715843
+1
+TRUE
+toilet_facility
+Chi-Square
+22.3364693
+0.050362718
+13
+FALSE
+mother_occupation
+Chi-Square
+19.37233858
+0.054728693
+11
+FALSE
+twin_child
+Chi-Square
+4.878357114
+0.087232479
+2
+FALSE
+mother_ednlevel
+Chi-Square
+4.765344594
+0.189808533
+3
+FALSE
+hhhead_sex
+Chi-Square
+1.437785812
+0.230497981
+1
+FALSE
+wealth_index
+Chi-Square
+4.425096063
+0.351521772
+4
+FALSE
+hhmember_no
+ANOVA
+0.486019401
+0.485748229
+1
+FALSE
+hadvitamin_a
+Chi-Square
+0.414922953
+0.519481325
+1
+FALSE
+less5_childhh
+ANOVA
+0.274637237
+0.60026648
+1
+FALSE
+marital_status
+Chi-Square
+2.796267371
+0.731359942
+5
+FALSE
+Wasting
+Chi-Square
+0.115905211
+0.733518767
+1
+FALSE
+residence
+Chi-Square
+0.03740724
+0.846638265
+1
+FALSE
+antenatal_visits
+ANOVA
+0.028749427
+0.865367326
+1
+FALSE
+Fig. 1. Feature Importance score with the Threshold Line.
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+5 
+5.2.2. Tuning the ANN model
+The second Base model, Artificial Neural Network (ANN), was first 
+trained before being evaluated using different evaluation metrics. The 
+study used three hidden layers with 128, 64, and 32 neurons to train the 
+ANN model. This is known as a pyramidal structure and is widely used in 
+deep learning as it allows feature abstraction. A study conducted by 
+Goodfellow (2015) highlighted that deeper networks with increased 
+depths and decreasing layer sizes are active and successful for abstract 
+feature extraction and enhance the generalization, as the first layer 
+identifies general patterns and the other layers extract more complex 
+information. The ReLU activation was used, which is beneficial for deep 
+learning. Additionally, Adam optimizer for adaptive gradient method, 
+and finally, early stopping was applied to stop training if no improve­
+ment was made to prevent model overfitting. Collectively, these pa­
+rameters allowed the ANN to learn meaningful feature representations 
+while maintaining generalizability capacity.
+5.2.3. Tuning the hybrid model
+This hybrid model was formed using two steps: first, getting the 
+output probabilities from both RF and ANN, then cross-validation 
+stacking was performed to avoid model overfitting. The data were 
+then split into five folds or subgroups of about equal size using a strat­
+ified K-fold cross-validation, confirming that each fold contains the same 
+proportion of the observations.
+The second stage involved a meta learner, XGBoost model, which 
+was finally trained to learn how best to combine the RF and ANN pre­
+dictions for the Hybrid model with carefully tuned parameters. The 
+meta-model was tuned using 500 trees, with 80 % of features per tree to 
+maximize generalization, a small learning rate of 0.01 for more precise 
+boosting, together with a maximum depth of 4, and 80 % of the data per 
+tree to prevent overfitting.
+5.3. Model development
+From the dataset, 70 % of the data was used to train the models, and 
+30 % was used to evaluate them. The stratified splitting was applied to 
+preserve the ratio of anaemic and not anaemic cases in both sets. The 
+base (RF and ANN) models were first trained separately using the 
+original training set (X_train and y_train), the hybrid (RF+ANN) model 
+was then formed using two steps: first, getting the output probabilities 
+from both RF and ANN, and second, training a meta-learner (XGBoost 
+model) on these probabilities as input features to make the final pre­
+diction for the hybrid model. The mathematical formulation of the 
+model is presented in the following steps. 
+Step 1: Base Models
+Let
+X ∈Rn×p Is the matrix of a real dataset of the size n × p, where n is 
+the number of children (row), and p is the number of features (columns), 
+and y ∈{0, 1}n Is the binary output vector of length n (number of 
+children or row) with values of 0 and 1 for a child, where 0= not 
+anaemic and 1= anaemic.
+The 2 base models were trained, as shown the following equations. 
+fRF = X →[0, 1]
+(1) 
+The random forest model (fRF) was trained on the input features to 
+predict the chance of whether a child is not-anaemic (0) or anaemic (1). 
+fANN
+= X →[0, 1]
+(2) 
+The Artificial Neural Network (fANN ) model was also trained on the 
+input features to predict the probability of whether a child is not- 
+anaemic (0) or anaemic (1). 
+PRF = fRF(X)
+(3) 
+The output from (i) is treated as the probability from the random 
+forest (RF) model, which corresponds to the chance of a child being 
+anaemic. 
+PANN = fANN(X)
+(4) 
+The output from the second base model in (ii) is treated as the 
+probability from the Artificial Neural Network (ANN) model. 
+Step 2: Meta-Feature Construction 
+Pmeta = [PRF, PANN]
+(5) 
+Pmeta The meta-feature vector, which was obtained by combining the 
+outputs from the base models into a 2-dimensional feature vector, the 
+RF, and the ANN probabilities 
+Step 3: Meta-Model XGBoost 
+̂p = fXGB (Pmeta) ∈[0, 1]
+(6) 
+The third step was training a meta-learner model, XGBoost, fXGB 
+using the meta feature vector, Pmeta as an input, to get the final predicted 
+probability from XGBoost, ̂p, which again contains the values of 0 = not 
+anaemic and 1 = anaemic. 
+Step 4: Threshold Optimization using Youden’s Index 
+J( τ) = Sensitivity ( τ) + Specificity ( τ) −1
+(7) 
+Lastly, instead of using the default threshold τ = 0.5, the threshold 
+optimization process using Youden’s index was then done to get the 
+optimal threshold (τ∗) to balance sensitivity and Specificity to ensure the 
+balance between Sensitivity and Specificity.
+Then the optimal threshold (τ∗) is given as: 
+τ∗= arg
+max
+τ ∈[0, 1] J(τ)
+Where the optimal threshold (τ∗) is the value of τ that maximizes 
+J( τ), ensuring the best trade-off between sensitivity and specificity.
+The final classification rule is given as: 
+̂y =
+{
+1 if ̂p ≥τ∗
+0 elsewhere 
+Where:
+̂p Is the final anaemia prediction, which is either 0 = not anaemic or 
+1 = anaemic. The child is predicted as anaemic (1) if the final prediction, 
+̂p is greater than or equal to the optimized threshold, τ∗. Otherwise, the 
+child is predicted as not-anaemic (0).
+In addition, the proposed Aneamia Prediction Pipeline using a 
+stacked ensemble hybrid (RF+ANN) with XGBoost as a meta learner 
+machine learning model is presented in Fig. 2.
+6. Results and discussions
+6.1. Results
+Results of this study are presented in the following subsections.
+6.1.1. Performance of individual models across the threshold
+Table 2 shows the performance of the evaluation metrics across 
+different thresholds (0.35, 0.4, 0.45, and 0.5) for all three models, the 
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+6 
+ANN, Hybrid, and RF models, highlighting the variations in classifica­
+tion trade-offs, with the confidence intervals (CIs) providing insight into 
+the consistency of these estimates.
+For the ANN model, as the threshold increases from 0.35 to 0.5, a 
+slight increase in accuracy was observed (0.855–0.861) with the over­
+lapping CIs (0.834–0.880), indicating no statistically meaningful dif­
+ferences in accuracy between thresholds. The sensitivity decreased (the 
+model became less sensitive) from 0.836 (95 % CI: 0.801–0.867) at a 
+threshold of 0.35 to 0.789 (95 % CI: 0.750–0.822) at 0.5, while the 
+precision and specificity increased across the threshold. The model 
+showed a constant AUC across the thresholds, and the best-balanced 
+point between sensitivity and specificity was observed at the threshold 
+of 0.4, where the Youden index was slightly higher (0.704; 95 % CI: 
+0.660–0.746).
+For the Hybrid model, as the threshold increased, the sensitivity 
+(recall) decreased (0.874–0.823), while specificity and precision 
+increased. The Youden index values were almost identical at the 
+threshold of 0.35 and 0.4, which provided a balanced performance. At 
+0.35, the Hybrid model achieved an accuracy of 0.871 (95 % CI: 
+0.852–0.890) and improved at 0.4 with 0.873 (95 % CI: 0.853–0.892). 
+Sensitivity was 0.874 (95 % CI: 0.841–0.902) and decreased to 0.4 with 
+0.861 (95 % CI: 0.827–0.890). Precision (0.794–0.846) and Specificity 
+(0.870–0.913) increased as the threshold increased from 0.35 to 0.5. The 
+overlapping confidence intervals for the Youden index indicate that the 
+Fig. 2. The proposed Anaemia Prediction Pipeline using a stacked ensemble hybrid (RF+ANN) machine learning model.
+Table 2 
+Performance Metrics of the three Models across Thresholds.
+Model
+Threshold
+Accuracy (95 % CI)
+Precision (95 % CI)
+Sensitivity (95 % CI)
+Specificity (95 % CI)
+AUC (95 % CI)
+Youden (95 % CI)
+ANN
+0.35
+0.855 (0.834–0.874)
+0.782 (0.747–0.820)
+0.836 (0.801–0.867)
+0.866 (0.840–0.890)
+0.934 (0.920–0.946)
+0.702 (0.656–0.742)
+​
+0.4
+0.860 (0.840–0.880)
+0.800 (0.764–0.837)
+0.823 (0.786–0.855)
+0.881 (0.858–0.904)
+0.934 (0.920–0.946)
+0.704 (0.660–0.746)
+​
+0.45
+0.861 (0.839–0.880)
+0.812 (0.775–0.848)
+0.805 (0.766–0.839)
+0.893 (0.869–0.915)
+0.934 (0.920–0.946)
+0.698 (0.650–0.738)
+​
+0.5
+0.861 (0.839–0.880)
+0.822 (0.787–0.858)
+0.789 (0.750–0.822)
+0.902 (0.879–0.924)
+0.934 (0.920–0.946)
+0.691 (0.644–0.731)
+Hybrid
+0.35
+0.871 (0.852–0.890)
+0.794 (0.759–0.831)
+0.874 (0.841–0.902)
+0.870 (0.845–0.892)
+0.953 (0.941–0.963)
+0.744 (0.702–0.782)
+​
+0.4
+0.873 (0.853–0.892)
+0.805 (0.771–0.840)
+0.861 (0.827–0.890)
+0.880 (0.856–0.902)
+0.953 (0.941–0.963)
+0.741 (0.697–0.778)
+​
+0.45
+0.875 (0.856–0.893)
+0.822 (0.789–0.858)
+0.841 (0.805–0.872)
+0.895 (0.874–0.917)
+0.953 (0.941–0.963)
+0.736 (0.693–0.774)
+​
+0.5
+0.880 (0.861–0.898)
+0.846 (0.812–0.880)
+0.823 (0.786–0.856)
+0.913 (0.894–0.933)
+0.953 (0.941–0.963)
+0.736 (0.691–0.775)
+RF
+0.35
+0.856 (0.834–0.875)
+0.743 (0.707–0.779)
+0.926 (0.898–0.948)
+0.815 (0.786–0.842)
+0.958 (0.947–0.968)
+0.741 (0.703–0.777)
+​
+0.4
+0.866 (0.844–0.885)
+0.768 (0.730–0.804)
+0.906 (0.876–0.932)
+0.842 (0.814–0.866)
+0.958 (0.947–0.968)
+0.748 (0.708–0.786)
+​
+0.45
+0.884 (0.865–0.901)
+0.810 (0.775–0.845)
+0.890 (0.859–0.917)
+0.880 (0.856–0.902)
+0.958 (0.947–0.968)
+0.770 (0.731–0.807)
+​
+0.5
+0.885 (0.866–0.902)
+0.833 (0.799–0.867)
+0.859 (0.825–0.889)
+0.901 (0.879–0.921)
+0.958 (0.947–0.968)
+0.759 (0.718–0.796)
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+7 
+slight differences between thresholds 0.35 and 0.4 are not statistically 
+significant, as the model does not lose its ability to differentiate between 
+the anaemic and not-anaemic cases, and provides a trade-off between 
+sensitivity and specificity.
+Additionally, the RF model showed a decline in sensitivity 
+(0.926–0.859) across all thresholds from 0.35 to 0.5, making it less 
+effective at predicting positive cases and minimizing false negatives. 
+However, its performance in specificity (0.815–0.901) and precision 
+(0.743–0.833) increased as the thresholds also increased. The RF model 
+also showed consistency in the AUC with the high value (0.958) across 
+all thresholds, representing the strong general discriminative power. 
+The optimal threshold was observed at 0.45.
+6.1.2. Literature benchmarking of the proposed model
+Table 3 shows the benchmarked performance of the Hybrid machine 
+learning model against the models used in previous studies. The per­
+formance of the evaluation metrics was presented at the standard 
+threshold of 0.5, as reported in the previous works. The results are 
+presented as the point estimates with 95 % CI for accuracy, precision, 
+sensitivity, specificity, and AUC.
+The Hybrid model achieved an accuracy of 0.880 (95 % CI 
+0.861–0.898) and an AUC of 0.953 (95 % CI: 0.941–0.963). This was 
+higher than the traditional models such as LASSO, SVM, Logistic 
+Regression, and Naive Bayes, which showed a lower AUC ranging from 
+0.933 to 0.943. Additionally, the Hybrid model performed better than 
+the classical models across most metrics, with higher CIs indicating a 
+statistical difference. Also, the Hybrid model was stronger than the ANN 
+model across all metrics. The RF and XGBoost models showed similar 
+AUC (0.958, CI: 0.947–0.968, and 0.958, CI: 0.948–0.968), with over­
+lapping CIs indicating no statistical differences. Compared with the RF 
+model, the Hybrid model had a slightly lower sensitivity but better 
+precision and specificity, leading to a balanced overall performance. 
+Additionally, compared with the XGBoost model, the Hybrid model had 
+a slightly lower accuracy (0.880 vs 0.892) and AUC (0.953 vs 0.958) but 
+remained very close, especially in precision (0.846 vs 0.852) and spec­
+ificity (0.913 vs 0.915). Additionally, the Hybrid model
+6.1.3. Threshold optimization analysis
+Fig. 3 shows the trade-off between sensitivity and specificity at 
+different classification thresholds using Youden’s J index for the RF, 
+ANN, and Hybrid models. Each point on the graph represents a different 
+threshold point, from 0.35 to 0.5. As the threshold increases, the 
+sensitivity decreases and specificity increases, while decreasing the 
+threshold, sensitivity increases and specificity decreases. Among all 
+models, the RF model constantly reaches the highest sensitivity (recall), 
+especially at the lower threshold of 0.35; however, it shows a decline in 
+specificity. The hybrid model, at the threshold of 0.4, shows a more 
+balanced performance, obtaining a nearly optimal trade-off between 
+sensitivity (0.861) and specificity (0.880).
+6.1.4. Statistical significance tests
+The pairwise tests were conducted between the Hybrid model and 
+the base models; McNemar’s test was applied to examine whether the 
+differences in misclassification errors between models were significant, 
+and DeLong’s test was used to compare AUCs, ensuring that the 
+observed differences reflected the actual performance variation rather 
+than random chance. At the Youden-optimized thresholds, the McNe­
+mar’s test showed that the Hybrid model made significantly fewer 
+misclassification errors than ANN (p = 0.0022), indicating a statistical 
+difference between the Hybrid model and the ANN model, while the test 
+showed no statistical difference between the Hybrid model and the RF 
+model (p = 0.4885). Additionally, the DeLong’s test confirmed no sig­
+nificant differences in AUC between the Hybrid model and ANN 
+(0.9381), as well as the Hybrid model and the RF model (0.9581), as 
+shown in Table 4.
+6.1.5. Error analysis
+Error analysis was performed to identify patterns of false positives 
+and false negatives, showing where the models failed or went wrong. 
+This is particularly important in anaemia screening since false negatives 
+(missed anaemic cases) carry greater clinical risk than false positives. 
+Hence, making error analysis was essential for assessing the consistency 
+and reliability of the models beyond the overall metrics, as shown in 
+Table 5
+For the Hybrid model, at the optimal thresholds of 0.35, the sensi­
+tivity (0.874, 95 % CI: 0.841–0.902) and specificity (0.870, 95 % CI: 
+0.845–0.892), corresponding to 101 false positives (FP) and 56 false 
+negatives (FN) and at 0.4, the Hybrid model achieved the sensitivity 
+(0.861, 95 % CI: 0.827–0.890) and specificity (0.880, 95 % CI: 
+0.856–0.902), corresponding to 93 false positives (FP) and 62 false 
+negatives (FN). In comparison, the ANN model at a threshold of 0.4 
+produced more false positives (92 FN) than false negatives (79 FN). For 
+the RF model, the lowest number of missed cases (49 FN) was observed, 
+but with slightly higher false positives (93 FP) at threshold 0.45. 
+Importantly, the Hybrid model deliberately accepts more false positives 
+to reduce false negatives, which is clinically valuable for anaemia pre­
+diction, where missing an anaemic case has a higher cost than unnec­
+essary treatment.
+6.2. Discussions
+The hybrid machine learning model was built using a stacked 
+ensemble approach that combined the strengths of two base models: 
+Random Forest (RF) and Artificial Neural Network (ANN), with a meta- 
+learner model, XGBoost, that aggregated the predictive probabilities 
+from the base models. According to Rane et al. (2024), this approach 
+benefits from the strengths of ensemble learning and neural networks to 
+improve generalisation and predictive accuracy and overcome the lim­
+itations of a standalone model. It operates at two levels. First, base 
+learners are trained on the original dataset, and second, a meta-learner is 
+trained on the outputs of the base models (predicted probabilities). 
+Additionally, the RF model, due to its ensemble decision trees, can 
+handle noise well and resist the overfitting problem, and the ANN model 
+is capable of dealing with nonlinear relationships and patterns between 
+the input and the target features due to its deep learning manner 
+(Geethanjali & Valarmathi, 2024). Also, the meta-learner, XGBoost 
+model, was chosen for its speed and performance, especially in predic­
+tive modelling competitions, and it’s effective in handling several types 
+Table 3 
+Literature Benchmarking of the proposed Model.
+Model
+Τ
+Accuracy
+Precision
+Sensitivity
+Specificity
+AUC
+Logistic Regression
+0.5
+0.860 (0.839–0.880)
+0.780 (0.744–0.817)
+0.859 (0.825–0.889)
+0.860 (0.836–0.886)
+0.943 (0.930–0.953)
+LASSO
+0.5
+0.859 (0.839–0.879)
+0.780 (0.743–0.817)
+0.857 (0.823–0.886)
+0.860 (0.836–0.886)
+0.943 (0.930–0.954)
+SVM
+0.5
+0.861 (0.842–0.881)
+0.814 (0.778–0.850)
+0.805 (0.769–0.841)
+0.894 (0.872–0.917)
+0.934 (0.919–0.946)
+Naive Bayes
+0.5
+0.859 (0.837–0.880)
+0.811 (0.776–0.847)
+0.800 (0.760–0.836)
+0.893 (0.869–0.916)
+0.933 (0.919–0.945)
+Random Forest
+0.5
+0.885 (0.866–0.902)
+0.833 (0.799–0.867)
+0.859 (0.825–0.889)
+0.901 (0.879–0.921)
+0.958 (0.947–0.968)
+ANN
+0.5
+0.861 (0.839–0.880)
+0.822 (0.787–0.858)
+0.789 (0.750–0.822)
+0.902 (0.879–0.924)
+0.934 (0.920–0.946)
+XGBoost)
+0.5
+0.892 (0.874–0.909)
+0.852 (0.820–0.884)
+0.852 (0.820–0.881)
+0.915 (0.895–0.934)
+0.958 (0.948–0.968)
+Hybrid (RF+ANN→XGB)
+0.5
+0.880 (0.861–0.898)
+0.846 (0.812–0.880)
+0.823 (0.786–0.856)
+0.913 (0.894–0.933)
+0.953 (0.941–0.963)
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+8 
+of structured data (Ngo et al., 2022).
+When evaluated the performance at the standard threshold of 0.5, 
+the Hybrid model achieved an accuracy of 0.880 (95 % CI: 
+0.861–0.898), precision of 0.846 (95 % CI: 0.812–0.880), sensitivity of 
+0.823 (95 % CI: 0.786–0.856), specificity of 0.913 (95 % CI: 
+0.894–0.933), and AUC of 0.953 (95 % CI: 0.941–0.963). In comparison 
+with the classical models, such as SVM, LASSO, Naive Bayes, and Lo­
+gistic Regression, produced accuracies ranging from 0.859 to 0.860 and 
+AUCs of 0.933 to 0.943 with weaker balance across sensitivity and 
+specificity. These findings indicate that although the traditional models 
+provide reasonable predictive performance, they tend to favor one 
+evaluation metric over the other. Relative to the advanced single 
+models, XGBoost and RF were the strongest, where XGBoost achieved 
+the highest accuracy (0.892) and AUC (0.958), while RF was close, 
+achieving an accuracy of 0.885 and AUC of 0.958. The Hybrid model 
+was nearly as good as XGBoost, just slightly lower in accuracy and AUC. 
+But it had a better overall balance. Additionally, the Hybrid model 
+outperformed the ANN model, representing the value of stacking. This 
+design reflects the importance of combining different base learners to 
+capture both the linear and nonlinear patterns, resulting in more stable 
+predictions.
+Benchmarking the Hybrid model against the broader literature sup­
+ports these observations. The Hybrid machine learning model developed 
+outperformed several existing models reported in the literature 
+regarding balanced predictive performance, especially in an imbalanced 
+dataset like health datasets. Although Uwizera et al. (2022) reported a 
+Fig. 3. Sensitivity-Specificity Trade-off.
+Table 4 
+Statistical significance tests.
+Comparison
+McNemar b
+McNemar c
+McNemar p-value
+DeLong AUC_H
+DeLong AUC_Model
+DeLong z
+DeLong p-value
+Hybrid vs RF
+23
+29
+0.4885
+6.579
+0.022
+0.953
+0.9581
+Hybrid vs ANN
+41
+17
+0.0022
+6.579
+0
+0.953
+0.9342
+Table 5 
+Error analysis.
+Model
+Threshold
+Sensitivity (95 % CI)
+Specificity (95 % CI)
+TN
+FP
+FN
+TP
+ANN
+0.35
+0.836 (0.801–0.867)
+0.866 (0.840–0.890)
+670
+104
+73
+373
+​
+0.4
+0.823 (0.786–0.855)
+0.881 (0.858–0.904)
+682
+92
+79
+367
+​
+0.45
+0.805 (0.766–0.839)
+0.893 (0.869–0.915)
+691
+83
+87
+359
+​
+0.5
+0.789 (0.750–0.822)
+0.902 (0.879–0.924)
+698
+76
+94
+352
+Hybrid
+0.35
+0.874 (0.841–0.902)
+0.870 (0.845–0.892)
+673
+101
+56
+390
+​
+0.4
+0.861 (0.827–0.890)
+0.880 (0.856–0.902)
+681
+93
+62
+384
+​
+0.45
+0.841 (0.805–0.872)
+0.895 (0.874–0.917)
+693
+81
+71
+375
+​
+0.5
+0.823 (0.786–0.856)
+0.913 (0.894–0.933)
+707
+67
+79
+367
+RF
+0.35
+0.926 (0.898–0.948)
+0.815 (0.786–0.842)
+631
+143
+33
+413
+​
+0.4
+0.906 (0.876–0.932)
+0.842 (0.814–0.866)
+652
+122
+42
+404
+​
+0.45
+0.890 (0.859–0.917)
+0.880 (0.856–0.902)
+681
+93
+49
+397
+​
+0.5
+0.859 (0.825–0.889)
+0.901 (0.879–0.921)
+697
+77
+63
+383
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+9 
+higher sensitivity of 98.71 % and an AUC of 98 % using an XGBoost 
+model, but with a cost of specificity, the hybrid model in this study kept 
+a more balanced trade-off between sensitivity and specificity (82.3 % 
+and 91.3 %, respectively) and a strong AUC of 95.3 %. Related to the 
+other studies, such as those by Khan et al. (2021) and Tesfaye et al. 
+(2024), which state lower accuracies and specificity levels, the hybrid 
+model showed greater strength and generalizability. While another 
+study conducted by Zahirzada et al. (2023) attained a comparable ac­
+curacy of 86.4 %, the hybrid model showed a slightly improved overall 
+balance across all metrics. These results suggest that combining multiple 
+base learners with a stacking ensemble approach can enhance model 
+stability and predictive power in class-imbalanced datasets such as 
+health outcome prediction tasks (Ngo et al., 2022; Rane et al., 2024).
+While previous studies have limited evaluation to the default 
+threshold of 0.5, this study introduces threshold optimization by eval­
+uating thresholds of 0.35, 0.4, 0.45, and 0.5 and provides a more reliable 
+understanding of trade-offs between sensitivity and specificity and im­
+proves accuracy. A study conducted by Freeman & Moisen, 2008 re­
+ported that using a traditional default threshold of 0.5 as the cut-off does 
+not necessarily preserve the observed prevalence or result in the highest 
+prediction accuracy, especially for datasets with imbalanced problems 
+(datasets with very high or very low observed prevalence). In addition, 
+in many binary classification tasks, the goal is to optimize a single 
+performance measure, for example, accuracy or sensitivity. But there are 
+serious situations where it is necessary to maximize two or more per­
+formance measures simultaneously to ensure a balanced and robust 
+classifier performance. For example, in medical diagnostics, sensitivity 
+is needed to detect as many positive cases as possible, while specificity is 
+necessary to avoid misdiagnosing healthy individuals (Foody, 2023). In 
+this study, at the threshold of 0.4, the hybrid model showed a more 
+favourable balance between sensitivity and specificity (86.1 % and 88.0 
+% respectively), which is necessary in medical screening like anaemia 
+detection, where both false positives and false negatives have a signifi­
+cant cost in the life of the children aged 6–59 months.
+From a clinical standpoint, false negatives represent the number of 
+true anaemic cases classified as not anaemic, leading to delayed treat­
+ment, disease development, and avoidable health problems. This type of 
+error carries the highest clinical cost. False positives represent the 
+number of not-anaemic children being classified as anaemic cases, 
+leading to unnecessary treatment and additional resource use, but are 
+generally less harmful to the patient.
+The trade-off between 0.35 and 0.4 of the Hybrid model carries 
+practical implications. At 0.35, the model prioritizes detecting as many 
+anaemic cases as possible (fewer FN), but with the cost of treating more 
+healthy individuals (higher FP). At 0.4, the model becomes more suit­
+able for reducing the number of false alarms related to healthcare re­
+sources and patient anxiety. However, there are a few true anaemic 
+cases missing.
+When compared with ANN, at the Youden-optimized threshold, the 
+Hybrid model reduced the number of missed anaemic children (62 vs 79 
+FN), which is critical for timely intervention. While the RF model and 
+the Hybrid model both performed better, the differences between them 
+were not statistically significant. This suggests that the RF model 
+appeared to be the best in terms of minimizing missed cases, the Hybrid 
+model offered a more balanced trade-off between sensitivity and spec­
+ificity, which is clinically safer, reducing missed diagnoses without 
+overburdening the system with false alarms.
+Overall, the sensitivity (recall) is critical, as missed anaemic cases 
+(false negatives) have a greater risk than false positives. The Hybrid 
+model achieved a sensitivity of above 86 % at a Youden-optimized 
+threshold, with a balanced specificity around 88 %, providing a neces­
+sary trade-off between detecting true cases and minimizing false cases. 
+The higher specificity of the Hybrid model reduces unnecessary treat­
+ment, while maintaining a strong sensitivity, ensuring fewer missed 
+diagnoses, indicating the robustness of the Hybrid model to be consid­
+ered as a practical decision support tool in screening and early detection 
+of anaemia in children, making the Hybrid approach coupled with the 
+threshold optimization technique using Youden’s index more suitable 
+for real-world anaemia screening programs, especially in situations 
+where both under-diagnosis and over-diagnosis carry a significant 
+burden.
+7. Conclusions and recommendations
+7.1. Conclusion
+To improve the generalizability and overcome the limitations of 
+standalone models especially in dealing with imbalanced cases like 
+health datasets, the study concludes to use hybrid machine learning 
+model using a stacked ensemble approach combining the strengths of 
+two base models, Random Forest (RF) and Artificial Neural Network 
+(ANN), with a meta-learner, XGBoost model that aggregated the pre­
+dictive probabilities from the base models. The hybrid machine learning 
+model and the base models were evaluated for accuracy, precision, 
+sensitivity, specificity, and Area Under the Curve (AUC) with 95 % 
+confidence intervals (CIs) through different decision thresholds using 
+Youden’s J index (0.35, 0.4, 0.45, and 0.5). Additionally, statistical 
+differences were assessed using McNemar’s test to test whether one 
+model outperforms the other, and DeLong’s test was used to compare 
+AUCs between ROC curves. Through threshold optimization, the RF 
+model maintained its high sensitivity, but with lower precision and 
+specificity while the hybrid model showed a consistently balanced trade- 
+off between sensitivity and specificity across all thresholds, and the most 
+favourable threshold was 0.4, which provided a more balanced sensi­
+tivity and specificity that minimized both false positives and false neg­
+atives in anaemia prediction for children aged 6–59 months. Although 
+the RF model minimized the false negatives slightly more, the differ­
+ences with the Hybrid model were not statistically significant. Clinically, 
+the Hybrid model proved safer by ensuring fewer missed cases without 
+overburdening the system with false cases. The findings highlight the 
+robustness and practical relevance of the Hybrid model as a guiding tool 
+for anaemia screening programs. Hence, the study presents a novel 
+stacking hybrid model that integrates Random Forest (RF) and Artificial 
+Neural Network (ANN) using XGBoost as a meta-learner, joined with 
+threshold optimization.
+7.2. Contributions
+This study has made the following theoretical, methodological, and 
+practical contributions.
+This study enhances the theoretical understanding of childhood 
+anaemia by identifying its multiple causes. It confirms that factors such 
+as child-level, maternal characteristics, and household-related factors 
+collectively affect the risk of anaemia, thereby recommending multi- 
+dimensional health frameworks. Additionally, it also places global 
+anaemia classification standards in the context of Tanzania. This con­
+tributes to the local implementation of global health guidelines, offering 
+insights that bridge international health theory with national 
+implementation.
+Methodologically, this study presents a novel stacking hybrid model 
+that integrates Random Forest (RF) and Artificial Neural Network (ANN) 
+using XGBoost as a meta-learner, moving beyond the traditional single- 
+model approaches. This model showed strong performance in address­
+ing the class imbalance, a challenge in health data analysis. Addition­
+ally, integrating the threshold optimization techniques in classification 
+tasks to balance sensitivity and specificity, thereby aligning the meth­
+odological design with clinical decision-making needs. The study also 
+advances the methodological rigor by re-implementing and bench­
+marking the state-of-the-art classifiers on the same dataset, and by 
+validating the performance improvements through confidence intervals 
+and paired statistical significance tests.
+In practical terms, this study provides a data-driven framework 
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+10 
+designed to predict anaemia in children aged 6–59 months. The 
+balanced performance of the hybrid model positions it well for incor­
+poration into mobile health applications or public health dashboards. 
+The study also illustrates the importance of national survey data for 
+machine learning applications, promoting evidence-based decision- 
+making and enhancing analytical capacity in low-resource environ­
+ments. Additionally, this model provides a foundation for predictive 
+modelling across several health domains, such as neonatal mortality, 
+malnutrition, and infectious disease outbreaks.
+7.3. Limitation
+The study highly relied on secondary data that contained the social, 
+demographic, and health-related factors. Although the dataset is na­
+tionally representative, it may lack certain socio-environmental features 
+such as micronutrient intake and environmental exposure, which could 
+further improve the model’s predictive power and generalization. 
+Additionally, the use of features such as breastfeeding duration, child 
+birth size, and household water supply, which are not routinely recorded 
+in the Health Management Information System (HMIS), limits the direct 
+application of the model in real-world clinical settings.
+7.4. Recommendations and future work
+This study presents the following recommendations and outlines the 
+future work. 
+i. Health planners and policymakers also improve the campaigns on 
+hygiene practices, safe water, and food preparation, and increase the 
+deworming and immunization coverage to reduce infectious 
+diseases.
+ii. Health planners and policymakers also should adopt data-driven 
+approaches in designing and evaluating anaemia control programs, 
+investing in strengthening health information systems to collect 
+high-quality data for predictive modelling routinely.
+iii. The study also recommends deploying the hybrid model 
+(RF+ANN with XGBoost as a meta-learner) as a decision-support tool 
+in community health programs and clinics to identify children at risk 
+of anaemia at an early stage.
+iv. Based on the relevant social, demographic, and health-related 
+factors associated with anaemia in children aged 6–59 months, the 
+study recommends that health planners and policymakers design and 
+implement the appropriate interventions to eliminate anaemia.
+v. The study also recommends further related or longitudinal studies 
+incorporating additional socio-environmental variables such as 
+household dietary diversity and environmental exposure, to improve 
+the model’s generalizability and reliability.
+Data statement
+This study used secondary data from the Tanzania Demographic and 
+Health Survey conducted in 2022. Data is publicly available. It can be 
+accessed upon request from the National Bureau of Statistics (NBS), 
+Tanzania.
+Ethics statement
+This study used only anonymized secondary data from the Tanzania 
+Demographic and Health Survey (TDHS) 2022. No additional ethical 
+approval was required. The TDHS 2022 protocols were reviewed and 
+approved by the Tanzania National Institute for Medical Research 
+(NIMR) and the Institutional Review Board (IRB) of ICF International.
+Reproducibility
+The code will be available upon request from the Corresponding 
+Author.
+Author contributions
+Rabia Omar Said and Mahadia Tunga participated in the conceptu­
+alization of the study. Rabia Omar Said performed data curation. Rabia 
+Omar Said and Mahadia Tunga performed formal analysis. Rabia Omar 
+Said and Mahadia Tunga designed the methodology. Mahadia Tunga 
+supervised the study. Rabia Omar Said developed the model, and 
+Mahadia Tunga performed validation. Rabia Omar Said wrote the 
+original draft. Mahadia Tunga performed the review and editing of the 
+paper.
+Declaration of competing interest
+The authors declare that they have no known competing financial 
+interests or personal relationships that could have appeared to influence 
+the work reported in this paper.
+Acknowledgements
+None.
+Data availability
+The authors do not have permission to share data.
+References
+A Ilemobayo, J., Durodola, O., Alade, O., J Awotunde, O., T Olanrewaju, A., Falana, O., 
+Ogungbire, A., Osinuga, A., Ogunbiyi, D., Ifeanyi, A., E Odezuligbo, I., & E Edu, O. 
+(2024). Hyperparameter tuning in machine learning: A comprehensive review. 
+Journal of Engineering Research and Reports, 26(6), 388–395. https://doi.org/ 
+10.9734/jerr/2024/v26i61188
+Appiahene, P., Chaturvedi, K., Asare, J. W., Donkoh, E. T., & Prasad, M. (2023). CP- 
+AnemiC: A conjunctival pallor dataset and benchmark for anemia detection in 
+children. Medicine in Novel Technology and Devices, 18(March), Article 100244. 
+https://doi.org/10.1016/j.medntd.2023.100244
+Asare, J. W., Appiahene, P., Donkoh, E. T., & Dimauro, G. (2023). Iron deficiency anemia 
+detection using machine learning models: A comparative study of fingernails, palm 
+and conjunctiva of the eye images. Engineering Reports, 5(11), 1–21. https://doi.org/ 
+10.1002/eng2.12667
+Asare, J. W., Brown-Acquaye, W. L., Ujakpa, M. M., Freeman, E., & Appiahene, P. (2024). 
+Application of machine learning approach for iron deficiency anaemia detection in 
+children using conjunctiva images. Informatics in Medicine Unlocked, 45(January), 
+Article 101451. https://doi.org/10.1016/j.imu.2024.101451
+Bate, J., & Rasmussen, E. (2009). Key facts. Macbeth, 21–22. https://doi.org/10.1007/ 
+978-1-137-00443-7_3
+Chicco, D., & Jurman, G. (2020). The advantages of the Matthews correlation coefficient 
+(MCC) over F1 score and accuracy in binary classification evaluation. BMC Genomics, 
+21(1), 1–14. https://doi.org/10.1186/s12864-019-6413-7
+Deo, R., Desai, S., Behera, S., Pulate, C., Yadav, A., & Powar, N. (2024). Threshold 
+Selection for Classification Models in Prognostics, 1004–1010.
+ElDahshan, K. A., AlHabshy, A. A. A., & Mohammed, L. T. (2023). Filter and embedded 
+feature selection methods to meet big data visualization challenges. Computers, 
+Materials and Continua, 74(1), 817–839. https://doi.org/10.32604/ 
+cmc.2023.032287
+Foody, G. M. (2023). Challenges in the real world use of classification accuracy metrics: 
+From recall and precision to the Matthews correlation coefficient. PLoS ONE, 18(10 
+October), 1–27. https://doi.org/10.1371/journal.pone.0291908
+Freeman, E. A., & Moisen, G. G. (2008). A comparison of the performance of threshold 
+criteria for binary classification in terms of predicted prevalence and kappa. 
+Ecological Modelling, 217(1–2), 48–58. https://doi.org/10.1016/j. 
+ecolmodel.2008.05.015
+Gardner, W. M., Razo, C., McHugh, T. A., Hagins, H., Vilchis-Tella, V. M., Hennessy, C., 
+Taylor, H. J., Perumal, N., Fuller, K., Cercy, K. M., Zoeckler, L. Z., Chen, C. S., 
+Lim, S. S., Aravkin, A. Y., Arndt, M. B., Bishai, J. D., Burkart, K., Chung, E., Dai, X., & 
+Moradi, M. (2023). Prevalence, years lived with disability, and trends in anaemia 
+burden by severity and cause, 1990–2021: Findings from the Global Burden of 
+Disease Study 2021. The Lancet Haematology, 10(9), e713–e734. https://doi.org/ 
+10.1016/S2352-3026(23)00160-6
+Geethanjali, R., & Valarmathi, A. (2024). A Deep learning based hybrid model for 
+maternal health risk detection and multifaceted emotion analysis in social networks. 
+International Journal of Applied Mathematics and Computer Science, 34(4), 565–577. 
+https://doi.org/10.61822/amcs-2024-0038
+Goodfellow, I. (2015). Deep Feedforward Networks. In Deep learning book, 1 pp. 
+169–229).
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+11 
+Guide, C. M. S. (2025). How to use classification threshold to balance precision and recall 
+what is a classification (pp. 1–13).
+Jin, Z., Shang, J., Zhu, Q., Ling, C., Xie, W., & Qiang, B. (2020). RFRSF: Employee 
+turnover prediction based on random forests and survival analysis. Lecture Notes in 
+Computer Science (Including Subseries Lecture Notes in Artificial Intelligence and Lecture 
+Notes in Bioinformatics), 12343 LNCS, 503–515. https://doi.org/10.1007/978-3-030- 
+62008-0_35
+Kejo, D., Petrucka, P., Martin, H., Kimanya, M., & Mosha, T. (2018). Prevalence and 
+predictors of anemia among children under 5 years of age in Arusha District, 
+Tanzania. Pediatric health. Medicine and Therapeutics, 9, 9–15. https://doi.org/ 
+10.2147/phmt.s148515
+Khan, J. R., Chowdhury, S., Islam, H., & Raheem, E. (2021). Machine learning algorithms 
+to predict the childhood anemia In Bangladesh. Journal of Data Science, 17(1), 
+195–218. https://doi.org/10.6339/jds.201901_17(1).0009
+Laakel Hemdanou, A., Lamarti Sefian, M., Achtoun, Y., & Tahiri, I. (2024). Comparative 
+analysis of feature selection and extraction methods for student performance 
+prediction across different machine learning models. Computers and Education: 
+Artificial Intelligence, 7(October), Article 100301. https://doi.org/10.1016/j. 
+caeai.2024.100301
+Meitei, A. J., Saini, A., Mohapatra, B. B., & Singh, K. J. (2022). Predicting child anaemia 
+in the North-Eastern states of India: A machine learning approach. International 
+Journal of System Assurance Engineering and Management, 13(6), 2949–2962. https:// 
+doi.org/10.1007/s13198-022-01765-4
+Ministry of Health (MoH)[Tanzania Mainland]. (2022). Ministry of Health (MoH) 
+[Zanzibar], National Bureau of Statistics (NBS), Office of the Chief Government 
+Statistician (OCGS), & ICF. Tanzania demographic and health survey and malaria 
+indicator survey 2022 final report (p. 473).
+Msaki, R. V., Lyimo, E., Masumo, R. M., Mwana, E., Katana, D., Julius, N., Munuo, A., 
+Leyna, G., Issaka, A. I., Dhami, M. V., & Agho, K. E. (2022). Predictors of iron 
+deficiency anaemia among children aged 6–59 months in Tanzania: Evidence from 
+the 2015–16 TDHS-MIS cross-sectional household survey. PLOS Global Public Health, 
+2(11 November), 1–28. https://doi.org/10.1371/journal.pgph.0001258
+Ngo, N. T., Truong, T. T. H., Truong, N. S., Pham, A. D., Huynh, N. T., Pham, T. M., & 
+Pham, V. H. S. (2022). Proposing a hybrid metaheuristic optimization algorithm and 
+machine learning model for energy use forecast in non-residential buildings. 
+Scientific Reports, 12(1), 1–19. https://doi.org/10.1038/s41598-022-04923-7
+Pudjihartono, N., Fadason, T., Kempa-Liehr, A. W., & O’Sullivan, J. M. (2022). A review 
+of feature selection methods for machine learning-based disease risk prediction. 
+Frontiers in Bioinformatics, 2(June), 1–17. https://doi.org/10.3389/ 
+fbinf.2022.927312
+Rainio, O., Teuho, J., & Kl´en, R. (2024). Evaluation metrics and statistical tests for 
+machine learning. Scientific Reports, 14(1), 1–14. https://doi.org/10.1038/s41598- 
+024-56706-x
+Ramzan, M., Sheng, J., Saeed, M. U., Wang, B., & Duraihem, F. Z. (2024). 
+Revolutionizing anemia detection: Integrative machine learning models and 
+advanced attention mechanisms. In Visual Computing for Industry, Biomedicine, and 
+Art, 7. https://doi.org/10.1186/s42492-024-00169-4
+Rane, N., Choudhary, S. P., & Rane, J. (2024). Ensemble deep learning and machine 
+learning: Applications, opportunities, challenges, and future directions. Studies in 
+Medical and Health Sciences, 1(2), 18–41. https://doi.org/10.48185/smhs.v1i2.1225
+Said, F. A., Khamis, A. G., Habib, A., Yang, H., He, Z., & Luo, X. (2021). Prevalence and 
+determinants of anemia among children in zanzibar, tanzania: Analysis of cross- 
+sectional population representative surveys. Children, 8(12). https://doi.org/ 
+10.3390/children8121091
+Saihood, Q. (2022). The efficiency of classification techniques in predicting anemia among 
+children : A comparative study The efficiency of classification techniques in predicting 
+anemia among children : A comparative study. April. https://doi.org/10.1007/978-3 
+-030-97255-4.
+Saputra, D. C. E., Sunat, K., Ratnaningsih, T., Ma’arif, A., & Suwarno, I. (2025). 
+SmartForest: Optimizing anemia diagnosis with enhanced random forest and 
+XGBoost integration. Results in Engineering, 27(August), Article 106442. https://doi. 
+org/10.1016/j.rineng.2025.106442
+Schr¨oer, C., Kruse, F., & G´omez, J. M. (2021). A systematic literature review on applying 
+CRISP-DM process model. Procedia Computer Science, 181(2019), 526–534. https:// 
+doi.org/10.1016/j.procs.2021.01.199
+Skretteberg, M., Cosgrove, P., & Kowalski, M. (2024). A non-parametric bootstrap 
+method for kinetic Monte Carlo variance reduction. EPJ Web of Conferences, 302. 
+https://doi.org/10.1051/epjconf/202430209003
+Sundaram, J., Gowri, K., Devaraju, S., Gokuldev, S., Jayaprakash, S., Anandaram, H., 
+Manivasagan, C., & Thenmozhi, M. (2023). An exploration of python libraries in 
+machine learning models for data science. Advanced interdisciplinary applications of 
+machine learning python libraries for data science. https://doi.org/10.4018/978-1- 
+6684-8696-2.ch001. Issue June.
+Tesfaye, S. H., Seboka, B. T., & Sisay, D. (2024). Application of machine learning 
+methods for predicting childhood anaemia: Analysis of Ethiopian Demographic 
+Health Survey of 2016. PLoS ONE, 19(4 April), 1–14. https://doi.org/10.1371/ 
+journal.pone.0300172
+Trouvain, N., Pedrelli, L., Dinh, T. T., & Hinaut, X. (2020). ReservoirPy: An efficient and 
+user-friendly library to design echo State networks. Lecture Notes in Computer Science 
+(Including Subseries Lecture Notes in Artificial Intelligence and Lecture Notes in 
+Bioinformatics), 12397 LNCS, 494–505. https://doi.org/10.1007/978-3-030-61616- 
+8_40. February.
+Uwizera, D., Number, R., Science, D., & Rutayisire, P.C. (2022). Anemia prediction among 
+Rwandan children aged 6 to 59. September.
+Zahirzada, A., Zaheer, N., & Shahpoor, M. A. (2023). Machine learning algorithms to 
+predict anemia in children under the age of five years in Afghanistan : A case of 
+Kunduz Province. Journal of Survey in Fisheries Sciences, 10, 752–762.
+R.O. Said and M. Tunga                                                                                                                                                                                                                      
+Machine Learning with Applications 22 (2025) 100741 
+12 
