@@ -1,0 +1,33 @@
+Feature,Category,Test,Statistic,p-value (fmt),Significant
+Body Mass Index (BMI),Biological,ANOVA (F-test),201.416,< 0.0001,True
+BMI × Age Interaction,Biological,ANOVA (F-test),26.446,< 0.0001,True
+Age (Years),Biological,ANOVA (F-test),6.154,0.0131,True
+Height (cm),Biological,ANOVA (F-test),0.908,0.3405,False
+State Code (Odisha),Geographic,Chi-square,0.0,1.0000,False
+Hospital Access Difficulty,Healthcare Access,Chi-square,32.939,< 0.0001,True
+Healthcare Access Barrier Index,Healthcare Access,ANOVA (F-test),20.803,< 0.0001,True
+Distance to Hospital,Healthcare Access,Chi-square,5.011,0.0816,False
+Health Insurance,Healthcare Access,Chi-square,0.178,0.6728,False
+Residence (Urban/Rural),Household,Chi-square,17.668,< 0.0001,True
+Religion,Household,Chi-square,17.814,0.0128,True
+Drinking Water Source,Household,Chi-square,30.829,0.0141,True
+No Tobacco Use,Lifestyle,Chi-square,59.849,< 0.0001,True
+Currently Pregnant,Reproductive,Chi-square,192.223,< 0.0001,True
+Contraceptive Use,Reproductive,Chi-square,46.742,< 0.0001,True
+Maternal Burden Score,Reproductive,ANOVA (F-test),18.068,< 0.0001,True
+Births in Last 5 Years,Reproductive,Chi-square,23.56,< 0.0001,True
+Children Under 5 in HH,Reproductive,Chi-square,22.876,0.0018,True
+Total Children Ever Born,Reproductive,Chi-square,23.142,0.0169,True
+Breastfeeding Status,Reproductive,Chi-square,0.188,0.6644,False
+Wealth Index,Socio-Economic,Chi-square,153.399,< 0.0001,True
+Socio-Nutritional Shield Score,Socio-Economic,ANOVA (F-test),123.604,< 0.0001,True
+Education Level,Socio-Economic,Chi-square,111.648,< 0.0001,True
+Cooking Fuel Type,Socio-Economic,Chi-square,66.385,< 0.0001,True
+Watches Television,Socio-Economic,Chi-square,38.581,< 0.0001,True
+Reads Newspaper,Socio-Economic,Chi-square,32.217,< 0.0001,True
+Toilet Facility Type,Socio-Economic,Chi-square,51.572,< 0.0001,True
+Marital Status,Socio-Economic,Chi-square,25.182,< 0.0001,True
+Meat Consumption Frequency,Socio-Economic,Chi-square,8.896,0.1133,False
+Listens to Radio,Socio-Economic,Chi-square,3.306,0.1915,False
+Egg Consumption Frequency,Socio-Economic,Chi-square,3.965,0.5544,False
+Household Size,Socio-Economic,Chi-square,13.644,0.8040,False
